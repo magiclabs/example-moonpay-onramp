@@ -13,6 +13,13 @@ import TransactionHistory from '@/components/ui/TransactionHistory';
 import Image from 'next/image';
 import Link from 'public/link.svg';
 
+import dynamic from 'next/dynamic';
+
+const MoonPayBuyWidget = dynamic(
+  () => import('@moonpay/moonpay-react').then((mod) => mod.MoonPayBuyWidget),
+  { ssr: false },
+);
+
 const SendTransaction = () => {
   const { web3 } = useMagic();
   const [toAddress, setToAddress] = useState('');
@@ -22,6 +29,7 @@ const SendTransaction = () => {
   const [toAddressError, setToAddressError] = useState(false);
   const [amountError, setAmountError] = useState(false);
   const publicAddress = localStorage.getItem('user');
+  const [isVisible, setIsVisible] = useState<boolean>(false)
 
   useEffect(() => {
     setDisabled(!toAddress || !amount);
@@ -68,13 +76,25 @@ const SendTransaction = () => {
     <Card>
       <CardHeader id="send-transaction">Send Transaction</CardHeader>
       {getFaucetUrl() && (
-        <div>
+        <div className="flex flex-col gap-2">
           <a href={getFaucetUrl()} target="_blank" rel="noreferrer">
             <FormButton onClick={() => null} disabled={false}>
               Get Test {getNetworkToken()}
               <Image src={Link} alt="link-icon" className="ml-[3px]" />
             </FormButton>
           </a>
+          <FormButton onClick={() => setIsVisible(true)} disabled={false}>
+            Buy Crypto with Moonpay
+            <Image src={Link} alt="link-icon" className="ml-[3px]" />
+          </FormButton>
+          <MoonPayBuyWidget
+            variant="overlay"
+            baseCurrencyCode="usd"
+            baseCurrencyAmount="100"
+            defaultCurrencyCode="eth"
+            visible={isVisible}
+            onCloseOverlay={() => setIsVisible(!isVisible)}
+          />
           <Divider />
         </div>
       )}
